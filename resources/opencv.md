@@ -2,7 +2,7 @@
 ## Installation
 Install using pip 
 ```bash
-pip3 install python-opencv
+pip3 install opencv-python
 ```
 ### [Getting Started](https://www.geeksforgeeks.org/opencv-python-tutorial/#getting)
 ### [Image Resizing](https://www.geeksforgeeks.org/image-resizing-using-opencv-python/)
