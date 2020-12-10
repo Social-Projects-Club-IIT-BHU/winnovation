@@ -32,7 +32,7 @@ On collab the best recommended method for private repo is to use *ssh based meth
 ## Objectives for this week upto (10th Dec)
 
 - **Preprocessing Work** - Creating different types of augmentation methods(both simple and advanced) and also talking with app development members for making them understand what they have to do, to code same thing in kotlin or java.
-- **Model Building** - All members take one model each from the refernce provid below and modify it for our requirement and make sure that the code is written in keras with tensorflow2 backend and also ensure the code is written in well defined classes just like provided in reference(Note: YOu only just take inspiration from reference because their code is written in pytorch not tensorflow).
+- **Model Building** - All members take one model each from the reference provide below and modify it for our requirement and make sure that the code is written in keras with tensorflow2 backend and also ensure the code is written in well defined classes just like provided in reference(Note: YOu only just take inspiration from reference because their code is written in pytorch not tensorflow).
 - **App development** - Contact with preprocessing work members and develop methods for transforming things in java and kotlin 
 
 **NOTE:** If you stuck anywhere
@@ -44,7 +44,7 @@ On collab the best recommended method for private repo is to use *ssh based meth
 
 ## **Refernces---------**
 
-If you find anything useful refernces you can directly coomit add that in the resources folder and attach the links here.
+If you find anything useful refernces you can directly commit add that in the resources folder and attach the links here.
 
 - [Model related inspirations (Model team)](https://github.com/0aqz0/SLR)
 
@@ -52,4 +52,4 @@ If you find anything useful refernces you can directly coomit add that in the re
 ## **Instructions for Contribution:**
 
  - **For adding codes** - Create a pull request by using a different branch
- - **For adding resources** - you can directly commit in repo but ensure   that the resource is geniune and as per our project requirements.
+ - **For adding resources** - you can directly commit in repo but ensure that the resource is geniune and as per our project requirements.
