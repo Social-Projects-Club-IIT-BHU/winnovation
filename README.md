@@ -47,7 +47,7 @@ On collab the best recommended method for private repo is to use *ssh based meth
 If you find anything useful refernces you can directly commit add that in the resources folder and attach the links here.
 
 - [Model related inspirations (Model team)](https://github.com/0aqz0/SLR)
-
+- [Custom Data Generator inspiration](https://medium.com/@anuj_shah/creating-custom-data-generator-for-training-deep-learning-models-part-1-5c62b20cff26)
 
 ## **Instructions for Contribution:**
 
