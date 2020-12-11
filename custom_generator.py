@@ -23,7 +23,7 @@ class VideoDataGenerator:
               # horizontal_flip=False,
               # vertical_flip=False,
                rescale=None,
-               path = None,
+               base_path = None,
                temporal_length = 8,
                temporal_stride = 1,
                shape = [64,64],
@@ -45,7 +45,7 @@ class VideoDataGenerator:
       self.rescale = rescale
       self.temporal_length = temporal_length
       self.temporal_stride = temporal_stride
-      self.path = path
+      self.base_path = base_path
       self.shape = shape
       self.labels = labels
       self._form_csv(data_path = os.path.join(self.path, 'train'))  # making csv for train data
@@ -71,9 +71,9 @@ class VideoDataGenerator:
          video_list = os.listdir(os.path.join(data_dir_list,label))
          for vid in video_list:  # loop over all the videos
             data_df = pd.DataFrame(columns = ['image_path', 'label'])
-            img_list = os.listdir(os.path.join(data_dir, label, vid))
+            img_list = os.listdir(os.path.join(data_path, label, vid))
             for img in img_list: # looping through all the images and then appending it to the dataframe
-               img_path = os.path.join(data_dir, label, vid, img)
+               img_path = os.path.join(data_path, label, vid, img)
                data_df.append({ 'image_path' : img_path, 'label' : label}, ignore_index = True)
                 
             file_name = '{}_{}.csv'.format(data_dir,vid)
