@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import os
-import glob
 import cv2
 
 class Data_preparation:
@@ -17,15 +16,14 @@ class Data_preparation:
            
            data_df - dataframe containing the paths and corresponding labels
 
-           dest_directory - destination folder where we store the output frame level images of videos
-
         '''   
 
         self.df = data_df
 
-    def division_paths(self, top_labels = 10, validation_ratio = 0.18, test_ratio = 0.12):
+    def _division_paths(self, top_labels = 10, validation_ratio = 0.18, test_ratio = 0.12):
         top_lab = list(self.df['label'].value_counts()[0:top_labels].index)
         count_lab = list(self.df['label'].value_counts()[0:top_labels])
+        print(top_lab)
 
         for i, lab in enumerate(top_lab):
             train_len = int((1-(validation_ratio + test_ratio))*count_lab[i])          # train_portion is what remained from test and valid
@@ -52,20 +50,13 @@ class Data_preparation:
 
 
 
-    def frame_div(self, folder_path = 'Dataset'):    
+    def folder_div(self, folder_path = 'Dataset'):    
          
-        if not os.path.exists(folder_path):  # Dataset.
+        if not os.path.exists(folder_path):  # Dataset folder 
             os.makedirs(folder_path)
 
-        
-        
-        if not os.path.exists(os.path.join(folder_path, 'valid')):  # valid
-             os.makedirs(os.path.join(folder_path, 'valid'))
 
-        if not os.path.exists(os.path.join(folder_path, 'test')):  # test
-             os.makedirs(os.path.join(folder_path, 'test'))
-
-        train, val, test = self.division_paths()
+        train, val, test = self._division_paths()
 
         self._set_individual_folder(data = train, parent_dir = folder_path, name = 'train')
         self._set_individual_folder(data = val, parent_dir = folder_path, name =  'valid')
@@ -85,7 +76,7 @@ class Data_preparation:
             if not os.path.exists(os.path.join(parent_dir, name, label)):  # checking particular label directory is made or not
                 os.makedirs(os.path.join(parent_dir, name, label))
             
-            dest_folder = os.path.join(parent_dir, name, label,os.path.basename(path).split('.')[0])
+            dest_folder = os.path.join(parent_dir, name, label, os.path.basename(path).split('.')[0])
             os.makedirs(dest_folder)  # making directory for each particular video
             
             self._videowriter(video_path = path, save_folder = dest_folder, format = 'png')
@@ -93,29 +84,33 @@ class Data_preparation:
 
    
 
-    def _videowriter(self, video_path  = None, save_folder = None, format = None):
+    def _videowriter(self, video_path  = None, save_folder = None, format = 'png'):
 
         # define a video capture object 
-        
-        cap = cv2.VideoCapture(video_path) 
-        
-        i = 0
-        while(True):
+        try:
 
-            # Capture the video frame 
-            # by frame 
-            ret, frame = cap.read()
-            if ret == False:
-                break
-            i +=1
-            if format == 'png':   # images saved in png format
-                cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.png'),frame)
-            else:
-                cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.jpg'),frame)
+            cap = cv2.VideoCapture(video_path) 
+            
+            i = 0
+            while(True):
 
+                # Capture the video frame 
+                # by frame 
+                ret, frame = cap.read()
+                if ret == False:
+                    break
+                i +=1
+                if format == 'png':   # images saved in png format
+                    cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.png'),frame)
+                else:
+                    cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.jpg'),frame)
+
+            
+            cap.release()
+            cv2.destroyAllWindows()
         
-        cap.release()
-        cv2.destroyAllWindows()
-        
+        except Exception as e:
+            print('Exception is ', e)
+            pass
 
     

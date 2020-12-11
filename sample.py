@@ -7,7 +7,6 @@ cap = cv2.VideoCapture('/media/amshra267/sa44/winnovation/sample_videos/00414.mp
 i=0
 print(cap.isOpened())
 while(True):
-    print(cap.isOpened())
     ret, frame = cap.read()
     print(ret)
     if ret == False:
