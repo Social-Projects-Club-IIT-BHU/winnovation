@@ -5,7 +5,7 @@ import cv2
 
 class Data_preparation:
     '''
-    Prerequisite for converting the data and format it into train, test, val
+    Prerequisite for converting the data and divide it into train, test, val
     '''
 
     def __init__(self, data_df = None):
@@ -21,6 +21,23 @@ class Data_preparation:
         self.df = data_df
 
     def _division_paths(self, top_labels = 10, validation_ratio = 0.18, test_ratio = 0.12):
+        
+        '''
+        Function defining the division of data among train, test and valid
+
+        Arguments:
+
+        validation_ratio - for setting percentage validation data
+        test_ratio - for setting percentage validation data
+        top_labels - no. of labels for divison
+
+        default values are mentioned above
+
+        '''
+
+
+
+
         top_lab = list(self.df['label'].value_counts()[0:top_labels].index)
         count_lab = list(self.df['label'].value_counts()[0:top_labels])
         print(top_lab)
@@ -50,13 +67,24 @@ class Data_preparation:
 
 
 
-    def folder_div(self, folder_path = 'Dataset'):    
+    def folder_div(self, top_labels = 10, folder_path = 'Dataset'):   
+
+        '''
+         function used for dividing the data folders into sub directories
+
+         Arguments :
+
+         top_labels - no. of labels on which we train our data (default = 10)
+
+         folder_path - path where data is stored (default = 'Dataset')
+
+        '''
          
         if not os.path.exists(folder_path):  # Dataset folder 
             os.makedirs(folder_path)
 
 
-        train, val, test = self._division_paths()
+        train, val, test = self._division_paths(top_labels = 10)
 
         self._set_individual_folder(data = train, parent_dir = folder_path, name = 'train')
         self._set_individual_folder(data = val, parent_dir = folder_path, name =  'valid')
@@ -65,6 +93,18 @@ class Data_preparation:
             
 
     def _set_individual_folder(self, data = None, parent_dir = None, name = None):
+
+        '''
+
+        function for managing the individual folder directories
+
+        Arguments:
+
+        data - dataframe for managing that folder
+        parent_dir - parent directory of that folder
+        name - name of the folder
+
+        '''
 
         if not os.path.exists(os.path.join(parent_dir, name)):  # Checking whether the given folder exist or not, if not make it.
              os.makedirs(os.path.join(parent_dir, name))
@@ -85,6 +125,17 @@ class Data_preparation:
    
 
     def _videowriter(self, video_path  = None, save_folder = None, format = 'png'):
+
+        '''
+        Function for diving a video into frames and store them one by one
+
+        Arguments:
+
+        video_path - Path of the video
+        save_folder - folder where frames need to be save
+        format - frames extension (default = 'png')
+
+        '''
 
         # define a video capture object 
         try:

@@ -15,14 +15,12 @@ class VideoDataGenerator:
    '''
 
    def __init__( self,
-               rotation_range=0,
+               rotation_range=0.0,
                width_shift_range=0.0,
                height_shift_range=0.0,
                zoom_range=0.0,
                fill_mode="nearest",
-              # horizontal_flip=False,
-              # vertical_flip=False,
-               rescale=None,
+               rescale=1./255,
                base_path = None,
                temporal_length = 8,
                temporal_stride = 1,
@@ -33,6 +31,19 @@ class VideoDataGenerator:
       '''
       Constructor function for calling video data generator 
 
+      Arguments:
+
+      rotation_range - degree upto which image can rotate, in between (0,1) (default = 0.0),
+      width_shift_range - amount of shiftimg in horizontal direction, in between (0,1) (default = 0.0),
+      height_shift_range - amount of shiftimg in vertical direction, in between (0,1) (default = 0.0),
+      zoom_range - amount of zooming, in between (0,1) (default = 0.0),
+      fill_mode - interploation method (deafult = "nearest"),
+      rescale - rescaling pixels according to multiplication by this(default = 1./255)
+      base_path - root directory path inside which images are present, (default = None),
+      temporal_length - No. of frames to be taken per video sample, (default = 8)
+      temporal_stride - tmporal strides across each sample videos , (default = 1),
+      shape  - width and height of each frame, (default = [64,64]),
+      labels = 10
 
       '''
       self.rotation = rotation_range 
@@ -48,9 +59,9 @@ class VideoDataGenerator:
       self.base_path = base_path
       self.shape = shape
       self.labels = labels
-      self._form_csv(data_path = os.path.join(self.path, 'train'))  # making csv for train data
-      self._form_csv(data_path = os.path.join(self.path, 'valid'))  # making csv for train data
-      self._form_csv(data_path = os.path.join(self.path, 'test'))  # making csv for train data
+      self._form_csv(data_path = os.path.join(self.base_path, 'train'))  # making csv for train data
+      self._form_csv(data_path = os.path.join(self.base_path, 'valid'))  # making csv for train data
+      self._form_csv(data_path = os.path.join(self.base_path, 'test'))  # making csv for train data
      # self._file_generator()
 
 
@@ -59,16 +70,20 @@ class VideoDataGenerator:
    def _form_csv(self, data_path = None):
       '''
       making a csv file for each video in the dataset 
+
+      Arguments:
+      data_path = path of the folder from which csv is obtained
+
       '''
       
-      if not os.path.exists(os.path.join('csv_datatest', os.path.basename(data_path))):
+      if not os.path.exists(os.path.join('csv_dataset', os.path.basename(data_path))):
          os.makedirs(os.path.join('csv_dataset', os.path.basename(data_path)))
 
       data_dir_list = os.listdir(data_path)
 
       for data_dir in data_dir_list:
          label = str(data_dir)
-         video_list = os.listdir(os.path.join(data_dir_list,label))
+         video_list = os.listdir(os.path.join(data_path,label))
          for vid in video_list:  # loop over all the videos
             data_df = pd.DataFrame(columns = ['image_path', 'label'])
             img_list = os.listdir(os.path.join(data_path, label, vid))
@@ -82,7 +97,15 @@ class VideoDataGenerator:
    
    def file_generator(self,data_path,data_files):
       '''
+      Function for making a file path generator for samples of videos according to temporal length and stride
+
+      Argument - 
       data_files - list of csv files to be read.
+      data_path - path of the particular image data folder
+      
+      yields:
+
+      appropriate length frame samples and corresponding label
       '''
       for f in data_files:
 
@@ -110,6 +133,19 @@ class VideoDataGenerator:
 
    def load_samples(self,root_path = 'csv_dataset', data_cat=None):
 
+      '''
+      Function for loading all the samples path in a list
+
+      Arguments:
+      
+      root_path - path for storing that category data samples
+      data_cat - type of data  ('train', 'test', 'valid')
+      
+      Returns:
+      
+      list containg paths for frames of each sample and corresponding label
+      '''
+
       data_path = os.path.join(root_path, data_cat)
       csv_data_files = os.listdir(data_path)
       file_gen = self.file_generator(data_path,csv_data_files)
@@ -128,30 +164,36 @@ class VideoDataGenerator:
     
    def shuffle_data(self, samples):
 
+      '''
+      data shuffling
+      '''
+
       return shuffle(samples,random_state=2)
     
    def preprocess_image(self,img):
-
+      
+      '''
+      All preprocessing stuffs with image is performed by this function
+      '''
 
       img = cv2.resize(img,(self.shape[0], self.shape[1]))
       img = img*self.rescale
 
       return img
     
-   def data_generator(self,data, labels_map_dict = None, batch_size=10,shuffle=True):              
+   def flow(self,data, labels_map_dict = None, batch_size=10,shuffle=True):              
       """
       Yields the next training batch.
-      data is an array [[img1_filename,img2_filename...,img8_filename],label1], [image2_filename,label2],...].
+      data is an array [[img1_filename,img2_filename...,upto frames mentioned using temporal length],label1], [image2_filename,label2],...].
       """
       num_samples = len(data)
       if shuffle:
          data = self.shuffle_data(data)
       while True:   
          for offset in range(0, num_samples, batch_size):
-            #print ('startring index: ', offset) 
             # Get the samples you'll use in this batch
             batch_samples = data[offset:offset+batch_size]
-            # Initialise X_train and y_train arrays for this batch
+            # Initialise x_train and y_train arrays for this batch
             x_train = []
             y_train = []
             # For each example
@@ -164,7 +206,6 @@ class VideoDataGenerator:
                   try:
                      img = cv2.imread(img)
                      #apply any kind of preprocessing here
-                     #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
                      img = self.preprocess_image(img)
                      temp_data_list.append(img)
 
@@ -172,20 +213,17 @@ class VideoDataGenerator:
                      print (e)
                      print ('error reading file: ',img)  
 
-               # Read label (y)
-               #label = label_names[y]
-               # Add example to arrays
                x_train.append(temp_data_list)
                y_train.append(y)
    
             # Make sure they're numpy arrays (as opposed to lists)
             x_train = np.asarray(x_train)
-            # this integer encoding is purely based on position, you can do this in other ways
 
+            # mapping labels
             y_train = [labels_map_dict[label] for label in y_train]
             
             y_train = np.asarray(y_train)
-            y_train = np_utils.to_categorical(y_train, self.labels)
+            y_train = np_utils.to_categorical(y_train, self.labels) # one hot encoding labels
 
             # The generator-y part: yield the next training batch            
             yield x_train, y_train
