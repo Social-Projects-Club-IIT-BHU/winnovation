@@ -23,7 +23,7 @@ On collab the best recommended method for private repo is to use *ssh based meth
 
 ## **Task to accomplish**
 
-- [ ] Preprocessing part
+- [x] Preprocessing part
 - [ ] Model Building
 - [ ] Model debugging
 - [ ] Model Insights
