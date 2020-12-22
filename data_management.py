@@ -84,7 +84,7 @@ class Data_preparation:
             os.makedirs(folder_path)
 
 
-        train, val, test = self._division_paths(top_labels = 10)
+        train, val, test = self._division_paths(top_labels = top_labels)
 
         self._set_individual_folder(data = train, parent_dir = folder_path, name = 'train')
         self._set_individual_folder(data = val, parent_dir = folder_path, name =  'valid')
