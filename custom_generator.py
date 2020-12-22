@@ -236,7 +236,7 @@ class VideoDataGenerator:
                temp_data_list = []
                for img in x:
                   try:
-                     img = cv2.imread(img)
+                     img = cv2.imread(img).astype('float32')
                      img *=self.rescale
                      temp_data_list.append(img) # appending all the images one by one
 
