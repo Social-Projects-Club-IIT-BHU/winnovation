@@ -24,15 +24,14 @@ On collab the best recommended method for private repo is to use *ssh based meth
 ## **Task to accomplish**
 
 - [x] Preprocessing part
-- [ ] Model Building
-- [ ] Model debugging
+- [x] Model Building
+- [x] Model debugging
 - [ ] Model Insights
 - [ ] App Development
   
-## Objectives for this week upto (10th Dec)
+## Objectives for this week upto (31st Dec)
 
-- **Preprocessing Work** - Creating different types of augmentation methods(both simple and advanced) and also talking with app development members for making them understand what they have to do, to code same thing in kotlin or java.
-- **Model Building** - All members take one model each from the reference provide below and modify it for our requirement and make sure that the code is written in keras with tensorflow2 backend and also ensure the code is written in well defined classes just like provided in reference(Note: YOu only just take inspiration from reference because their code is written in pytorch not tensorflow).
+- **Model Building** - To compile everything and complete.
 - **App development** - Contact with preprocessing work members and develop methods for transforming things in java and kotlin 
 
 **NOTE:** If you stuck anywhere
