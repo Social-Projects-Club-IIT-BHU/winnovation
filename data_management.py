@@ -8,7 +8,7 @@ class Data_preparation:
     Prerequisite for converting the data and divide it into train, test, val
     '''
 
-    def __init__(self, data_df = None):
+    def __init__(self, data_df = None, top_labels = 10):
         '''
         Constructor for calling the preparation clss
 
@@ -19,8 +19,9 @@ class Data_preparation:
         '''   
 
         self.df = data_df
+        self.top_labels = top_labels
 
-    def _division_paths(self, top_labels = 10, validation_ratio = 0.18, test_ratio = 0.12):
+    def _division_paths(self, validation_ratio = 0.18, test_ratio = 0.12):
         
         '''
         Function defining the division of data among train, test and valid
@@ -35,11 +36,11 @@ class Data_preparation:
 
         '''
 
+        
 
 
-
-        top_lab = list(self.df['label'].value_counts()[0:top_labels].index)
-        count_lab = list(self.df['label'].value_counts()[0:top_labels])
+        top_lab = list(self.df['label'].value_counts()[0:self.top_labels].index)
+        count_lab = list(self.df['label'].value_counts()[0:self.top_labels])
         print(top_lab)
 
         for i, lab in enumerate(top_lab):
@@ -67,7 +68,7 @@ class Data_preparation:
 
 
 
-    def folder_div(self, top_labels = 10, folder_path = 'Dataset'):   
+    def folder_div(self, folder_path = 'Dataset'):   
 
         '''
          function used for dividing the data folders into sub directories
@@ -84,7 +85,7 @@ class Data_preparation:
             os.makedirs(folder_path)
 
 
-        train, val, test = self._division_paths(top_labels = top_labels)
+        train, val, test = self._division_paths()
 
         self._set_individual_folder(data = train, parent_dir = folder_path, name = 'train')
         self._set_individual_folder(data = val, parent_dir = folder_path, name =  'valid')
