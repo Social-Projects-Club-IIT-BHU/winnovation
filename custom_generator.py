@@ -237,12 +237,12 @@ class VideoDataGenerator:
                for img in x:
                   try:
                      img = cv2.imread(img)
+                     img *=self.rescale
                      temp_data_list.append(img) # appending all the images one by one
 
                   except Exception as e:
                      print (e)
-                     print ('error reading file: ',img)  
-               temp_data_list *= self.rescale
+                     print ('error reading file: ',img)
 
                if preprocessing: # if processing is true
                   seq = self.preprocess_video()
