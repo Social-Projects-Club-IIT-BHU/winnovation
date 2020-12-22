@@ -6,6 +6,9 @@ from sklearn.utils import shuffle
 from collections import deque
 import copy
 from keras.utils import np_utils
+import imageio
+import imgaug as ia
+import imgaug.augmenters as iaa
 
 class VideoDataGenerator:
 
@@ -15,17 +18,16 @@ class VideoDataGenerator:
    '''
 
    def __init__( self,
-               rotation_range=0.0,
-               width_shift_range=0.0,
-               height_shift_range=0.0,
-               zoom_range=0.0,
-               fill_mode="nearest",
+               rotation_range=0.2,
+               shear_range = 0.2,
+               width_shift_range = 0.2,
+               height_shift_range = 0.2,
                rescale=1./255,
                base_path = None,
-               temporal_length = 8,
+               temporal_length = 6,
                temporal_stride = 1,
-               shape = [64,64],
-               labels = 10
+               shape = (64,64),
+               labels = 5
               ):
 
       '''
@@ -49,24 +51,22 @@ class VideoDataGenerator:
       self.rotation = rotation_range 
       self.width_shift = width_shift_range
       self.height_shift = height_shift_range
-      self.zoom = zoom_range
-      self.fill_mode = fill_mode
-    #  self.horizontal_flip = horizontal_flip
-    #  self.vertical_flip = vertical_flip
+      self.shear_range = shear_range
       self.rescale = rescale
       self.temporal_length = temporal_length
       self.temporal_stride = temporal_stride
       self.base_path = base_path
       self.shape = shape
       self.labels = labels
+
+
+
+
+   def csv_maker(self):
       self._form_csv(data_path = os.path.join(self.base_path, 'train'))  # making csv for train data
       self._form_csv(data_path = os.path.join(self.base_path, 'valid'))  # making csv for train data
       self._form_csv(data_path = os.path.join(self.base_path, 'test'))  # making csv for train data
-     # self._file_generator()
-
-
-
-
+      
    def _form_csv(self, data_path = None):
       '''
       making a csv file for each video in the dataset 
@@ -89,10 +89,10 @@ class VideoDataGenerator:
             img_list = os.listdir(os.path.join(data_path, label, vid))
             for img in img_list: # looping through all the images and then appending it to the dataframe
                img_path = os.path.join(data_path, label, vid, img)
-               data_df.append({ 'image_path' : img_path, 'label' : label}, ignore_index = True)
+               data_df = data_df.append({ 'image_path' : img_path, 'label' : label}, ignore_index = True)
                 
             file_name = '{}_{}.csv'.format(data_dir,vid)
-            data_df.to_csv(os.path.join('csv_dataset'), os.path.basename(data_path), file_name)  # saving video_by_video
+            data_df.to_csv(os.path.join('csv_dataset', os.path.basename(data_path), file_name))  # saving video_by_video
 
    
    def file_generator(self,data_path,data_files):
@@ -169,24 +169,56 @@ class VideoDataGenerator:
       '''
 
       return shuffle(samples,random_state=2)
-    
-   def preprocess_image(self,img):
+
+
+   def preprocess_video(self):
       
       '''
-      All preprocessing stuffs with image is performed by this function
+      This function contains the sequence of action to be done
       '''
 
-      img = cv2.resize(img,(self.shape[0], self.shape[1]))
-      img = img*self.rescale
+      return iaa.Sequential([
+         iaa.Crop(percent=(0, 0.1)), # random crops
+         # Small gaussian blur with random sigma between 0 and 0.5.
+         # But we only blur about 50% of all images.
+         iaa.Sometimes(
+            0.5,
+            iaa.GaussianBlur(sigma=(0, 0.5))
+         ),
+         # Strengthen or weaken the contrast in each image.
+         iaa.LinearContrast((0.75, 1.5)),
+         # Add gaussian noise.
+         # For 50% of all images, we sample the noise once per pixel.
+         # For the other 50% of all images, we sample the noise per pixel AND
+         # channel. This can change the color (not only brightness) of the
+         # pixels.
+         iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+         # Make some images brighter and some darker.
+         # In 20% of all cases, we sample the multiplier once per channel,
+         # which can end up changing the color of the images.
+         iaa.Multiply((0.8, 1.2), per_channel=0.2),
+         # Apply affine transformations to each image.
+         # Scale/zoom them, translate/move them, rotate them and shear them.
+         iaa.Affine(
+            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+            translate_percent={"x": (-self.width_shift, self.width_shift), "y": (-self.height_shift, self.height_shift)},
+            rotate=(-self.shear_range*90, self.shear_range*90),
+            shear=(-self.rotation*45, self.rotation*45),
+            mode = 'edge'
+         ),
+         iaa.size.Resize(self.shape)
+      ], random_order=True) # apply augmenters in random order
 
-      return img
+
     
-   def flow(self,data, labels_map_dict = None, batch_size=10,shuffle=True):              
+   def flow(self,data, labels_map_dict = None, batch_size=10,shuffle=True, preprocessing = True):              
       """
       Yields the next training batch.
       data is an array [[img1_filename,img2_filename...,upto frames mentioned using temporal length],label1], [image2_filename,label2],...].
       """
+
       num_samples = len(data)
+      
       if shuffle:
          data = self.shuffle_data(data)
       while True:   
@@ -205,13 +237,17 @@ class VideoDataGenerator:
                for img in x:
                   try:
                      img = cv2.imread(img)
-                     #apply any kind of preprocessing here
-                     img = self.preprocess_image(img)
-                     temp_data_list.append(img)
+                     temp_data_list.append(img) # appending all the images one by one
 
                   except Exception as e:
                      print (e)
                      print ('error reading file: ',img)  
+               temp_data_list *= self.rescale
+
+               if preprocessing: # if processing is true
+                  seq = self.preprocess_video()
+                  det = seq.to_deterministic()
+                  temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
 
                x_train.append(temp_data_list)
                y_train.append(y)
