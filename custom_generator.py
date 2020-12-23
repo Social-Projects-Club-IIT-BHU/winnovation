@@ -9,6 +9,7 @@ from keras.utils import np_utils
 import imageio
 import imgaug as ia
 import imgaug.augmenters as iaa
+from concurrent.futures import ThreadPoolExecutor
 
 class VideoDataGenerator:
 
@@ -208,7 +209,34 @@ class VideoDataGenerator:
          ),
          iaa.size.Resize(self.shape)
       ], random_order=True) # apply augmenters in random order
+   
+   def batch_preparator(self, batch_samples):
+      
+      x_train = []
+      y_train = []
+      for batch_sample in batch_samples:
+         # Load image (X)
+         x = batch_sample[0]
+         y = batch_sample[1]
+         temp_data_list = []
+         for img in x:
+            try:
+               img = cv2.imread(img).astype('float32')
+               img *=self.rescale
+               temp_data_list.append(img) # appending all the images one by one
 
+            except Exception as e:
+               print (e)
+               print ('error reading file: ',img)
+
+         if preprocessing: # if processing is true
+            seq = self.preprocess_video()
+            det = seq.to_deterministic()
+            temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
+
+         x_train.append(temp_data_list)
+         y_train.append(y)
+         return x_train, y_train   
 
     
    def flow(self,data, labels_map_dict = None, batch_size=10,shuffle=True, preprocessing = True):              
@@ -221,46 +249,25 @@ class VideoDataGenerator:
       
       if shuffle:
          data = self.shuffle_data(data)
-      while True:   
-         for offset in range(0, num_samples, batch_size):
-            # Get the samples you'll use in this batch
-            batch_samples = data[offset:offset+batch_size]
-            # Initialise x_train and y_train arrays for this batch
-            x_train = []
-            y_train = []
-            # For each example
-            for batch_sample in batch_samples:
-               # Load image (X)
-               x = batch_sample[0]
-               y = batch_sample[1]
-               temp_data_list = []
-               for img in x:
-                  try:
-                     img = cv2.imread(img).astype('float32')
-                     img *=self.rescale
-                     temp_data_list.append(img) # appending all the images one by one
+      while True:
+         with ThreadPoolExecutor(max_workers=16) as pool:   
+            for offset in range(0, num_samples, batch_size):
+               # Get the samples you'll use in this batch
+               batch_samples = data[offset:offset+batch_size]
+               # Initialise x_train and y_train arrays for this batch
 
-                  except Exception as e:
-                     print (e)
-                     print ('error reading file: ',img)
+               # For each example
+               
+               x_train, y_train = pool.map(self.batch_generator, batch_samples)
+               # Make sure they're numpy arrays (as opposed to lists)
+               x_train = np.asarray(x_train)
 
-               if preprocessing: # if processing is true
-                  seq = self.preprocess_video()
-                  det = seq.to_deterministic()
-                  temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
+               # mapping labels
+               y_train = [labels_map_dict[label] for label in y_train]
+               
+               y_train = np.asarray(y_train)
+               y_train = np_utils.to_categorical(y_train, self.labels) # one hot encoding labels
 
-               x_train.append(temp_data_list)
-               y_train.append(y)
-   
-            # Make sure they're numpy arrays (as opposed to lists)
-            x_train = np.asarray(x_train)
-
-            # mapping labels
-            y_train = [labels_map_dict[label] for label in y_train]
-            
-            y_train = np.asarray(y_train)
-            y_train = np_utils.to_categorical(y_train, self.labels) # one hot encoding labels
-
-            # The generator-y part: yield the next training batch            
-            yield x_train, y_train
+               # The generator-y part: yield the next training batch            
+               yield x_train, y_train
 
