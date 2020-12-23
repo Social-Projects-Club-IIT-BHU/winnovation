@@ -207,15 +207,12 @@ class VideoDataGenerator:
          y = batch_sample[1]
          temp_data_list = []
          for img in x:
-            try:
-               img = cv2.imread(img)
-               img = cv2.resize(img, self.shape).astype('float32')
-               img *=self.rescale
-               temp_data_list.append(img) # appending all the images one by one
+            
+            img = cv2.imread(img)
+            img = cv2.resize(img, self.shape).astype('float32')
+            img *=self.rescale
+            temp_data_list.append(img) # appending all the images one by one
 
-            except Exception as e:
-               print (e)
-               print ('error reading file: ',img)
 
          if preprocess: # if processing is true
             seq = self.preprocess_video()
@@ -238,7 +235,7 @@ class VideoDataGenerator:
       if shuffle:
          data = self.shuffle_data(data)
       while True:
-         with ThreadPoolExecutor(max_workers=16) as pool:   
+         with ThreadPoolExecutor(max_workers=16) as pool:
             for offset in range(0, num_samples, batch_size):
                # Get the samples you'll use in this batch
                batch_samples = data[offset:offset+batch_size]
