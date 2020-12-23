@@ -258,7 +258,7 @@ class VideoDataGenerator:
 
                # For each example
                
-               x_train, y_train = pool.submit(self.batch_preparator, (batch_samples, preprocessing))
+               x_train, y_train = pool.map(self.batch_preparator, (batch_samples, preprocessing))
                # Make sure they're numpy arrays (as opposed to lists)
                x_train = np.asarray(x_train)
 
