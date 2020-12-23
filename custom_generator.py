@@ -233,6 +233,8 @@ class VideoDataGenerator:
             seq = self.preprocess_video()
             det = seq.to_deterministic()
             temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
+         else:
+            temp_data_list =  [cv2.resize(frame, self.shape) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
          x_train.append(temp_data_list)
          y_train.append(y)
       
