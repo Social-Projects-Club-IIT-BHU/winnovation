@@ -183,21 +183,9 @@ class VideoDataGenerator:
          # Small gaussian blur with random sigma between 0 and 0.5.
          # But we only blur about 50% of all images.
          iaa.Sometimes(
-            0.5,
+            0.7,
             iaa.GaussianBlur(sigma=(0, 0.5))
          ),
-         # Strengthen or weaken the contrast in each image.
-         iaa.LinearContrast((0.75, 1.5)),
-         # Add gaussian noise.
-         # For 50% of all images, we sample the noise once per pixel.
-         # For the other 50% of all images, we sample the noise per pixel AND
-         # channel. This can change the color (not only brightness) of the
-         # pixels.
-         iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-         # Make some images brighter and some darker.
-         # In 20% of all cases, we sample the multiplier once per channel,
-         # which can end up changing the color of the images.
-         iaa.Multiply((0.8, 1.2), per_channel=0.2),
          # Apply affine transformations to each image.
          # Scale/zoom them, translate/move them, rotate them and shear them.
          iaa.Affine(
@@ -207,7 +195,6 @@ class VideoDataGenerator:
             shear=(-self.rotation*45, self.rotation*45),
             mode = 'edge'
          ),
-         iaa.size.Resize(self.shape)
       ], random_order=True) # apply augmenters in random order
    
    def batch_preparator(self, batch_samples, preprocess):
@@ -221,7 +208,8 @@ class VideoDataGenerator:
          temp_data_list = []
          for img in x:
             try:
-               img = cv2.imread(img).astype('float32')
+               img = cv2.imread(img)
+               img = cv2.resize(img, self.shape).astype('float32')
                img *=self.rescale
                temp_data_list.append(img) # appending all the images one by one
 
@@ -233,8 +221,6 @@ class VideoDataGenerator:
             seq = self.preprocess_video()
             det = seq.to_deterministic()
             temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
-         else:
-            temp_data_list =  [cv2.resize(frame, self.shape) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
          x_train.append(temp_data_list)
          y_train.append(y)
       
