@@ -210,7 +210,7 @@ class VideoDataGenerator:
          iaa.size.Resize(self.shape)
       ], random_order=True) # apply augmenters in random order
    
-   def batch_preparator(self, batch_samples):
+   def batch_preparator(self, batch_samples, preprocess):
       
       x_train = []
       y_train = []
@@ -229,7 +229,7 @@ class VideoDataGenerator:
                print (e)
                print ('error reading file: ',img)
 
-         if preprocessing: # if processing is true
+         if preprocess: # if processing is true
             seq = self.preprocess_video()
             det = seq.to_deterministic()
             temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
@@ -258,7 +258,7 @@ class VideoDataGenerator:
 
                # For each example
                
-               x_train, y_train = pool.map(self.batch_generator, batch_samples)
+               x_train, y_train = pool.submit(self.batch_preparator, (batch_samples, preprocessing))
                # Make sure they're numpy arrays (as opposed to lists)
                x_train = np.asarray(x_train)
 
