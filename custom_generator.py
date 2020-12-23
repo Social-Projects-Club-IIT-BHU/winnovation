@@ -233,10 +233,10 @@ class VideoDataGenerator:
             seq = self.preprocess_video()
             det = seq.to_deterministic()
             temp_data_list =  [det.augment_image(frame).reshape(self.shape[0],self.shape[1],3) for frame in temp_data_list]  # Augmenting and preprocessing each frame of a video in same way
-
-         x_train.append(temp_data_list)
-         y_train.append(y)
-         return x_train, y_train   
+            x_train.append(temp_data_list)
+            y_train.append(y)
+      
+      return x_train, y_train   
 
     
    def flow(self,data, labels_map_dict = None, batch_size=10,shuffle=True, preprocessing = True):              
@@ -258,7 +258,7 @@ class VideoDataGenerator:
 
                # For each example
                
-               x_train, y_train = pool.map(self.batch_preparator, (batch_samples, preprocessing))
+               x_train, y_train = pool.submit(self.batch_preparator, batch_samples, preprocessing).result()
                # Make sure they're numpy arrays (as opposed to lists)
                x_train = np.asarray(x_train)
 
