@@ -32,7 +32,7 @@ seq = iaa.Sequential([
     # Scale/zoom them, translate/move them, rotate them and shear them.
     iaa.Affine(
         scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-        translate_percent={"x": (-0.3, 0.3), "y": (-0.3, 0.3)},
+        translate_percent={"x": (-self.width_shift_range, self.width_shift_range), "y": (-self.height_shift_range, self.height_shift_range)},
         rotate=(-0.2*45, 0.2*45, ),
         shear=(-0.1*45, 0.1*45),
         mode = 'edge'
