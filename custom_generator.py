@@ -5,6 +5,7 @@ import os
 from sklearn.utils import shuffle
 from collections import deque
 import copy
+import random
 from keras.utils import np_utils
 import imageio
 import imgaug as ia
@@ -15,7 +16,7 @@ class VideoDataGenerator:
 
    '''
       custom data generator for video augmentation
-
+      with addition of a unique binning technique for increasing ( model robustness + data quality )
    '''
 
    def __init__( self,
@@ -23,7 +24,7 @@ class VideoDataGenerator:
                shear_range = 0.2,
                width_shift_range = 0.2,
                height_shift_range = 0.2,
-               rescale=1./255,
+               rescale= 1./255,
                base_path = None,
                temporal_length = 6,
                temporal_stride = 1,
@@ -36,17 +37,16 @@ class VideoDataGenerator:
 
       Arguments:
 
-      rotation_range - degree upto which image can rotate, in between (0,1) (default = 0.0),
-      width_shift_range - amount of shiftimg in horizontal direction, in between (0,1) (default = 0.0),
-      height_shift_range - amount of shiftimg in vertical direction, in between (0,1) (default = 0.0),
-      zoom_range - amount of zooming, in between (0,1) (default = 0.0),
-      fill_mode - interploation method (deafult = "nearest"),
+      rotation_range - degree upto which image can rotate, in between (0,1) (default = 0.2),
+      width_shift_range - amount of shiftimg in horizontal direction, in between (0,1) (default = 0.2),
+      height_shift_range - amount of shiftimg in vertical direction, in between (0,1) (default = 0.2),
+      zoom_range - amount of zooming, in between (0,1) (default = 0.2),
       rescale - rescaling pixels according to multiplication by this(default = 1./255)
       base_path - root directory path inside which images are present, (default = None),
-      temporal_length - No. of frames to be taken per video sample, (default = 8)
+      temporal_length - No. of frames to be taken per video sample, (default = 6)
       temporal_stride - tmporal strides across each sample videos , (default = 1),
       shape  - width and height of each frame, (default = [64,64]),
-      labels = 10
+      labels = 5(default)
 
       '''
       self.rotation = rotation_range 
@@ -65,8 +65,8 @@ class VideoDataGenerator:
 
    def csv_maker(self):
       self._form_csv(data_path = os.path.join(self.base_path, 'train'))  # making csv for train data
-      self._form_csv(data_path = os.path.join(self.base_path, 'valid'))  # making csv for train data
-      self._form_csv(data_path = os.path.join(self.base_path, 'test'))  # making csv for train data
+      self._form_csv(data_path = os.path.join(self.base_path, 'valid'))  # making csv for validation data
+      self._form_csv(data_path = os.path.join(self.base_path, 'test'))  # making csv for test data
       
    def _form_csv(self, data_path = None):
       '''
@@ -96,7 +96,7 @@ class VideoDataGenerator:
             data_df.to_csv(os.path.join('csv_dataset', os.path.basename(data_path), file_name))  # saving video_by_video
 
    
-   def file_generator(self,data_path,data_files):
+   def file_generator(self,data_path = None,data_files = None, Binning = False):
       '''
       Function for making a file path generator for samples of videos according to temporal length and stride
 
@@ -108,6 +108,8 @@ class VideoDataGenerator:
 
       appropriate length frame samples and corresponding label
       '''
+
+
       for f in data_files:
 
          tmp_df = pd.read_csv(os.path.join(data_path,f))
@@ -117,21 +119,31 @@ class VideoDataGenerator:
             num_samples = int((total_images-self.temporal_length)/self.temporal_stride)+1
             print ('num of samples from vid seq-{}: {}'.format(f,num_samples))
             img_list = list(tmp_df['image_path'])
+
+            samples = deque()
+            if Binning:
+            #Adding a unique technique of sampling frames from binning categories 
+               
+               image_range = int(total_images/self.temporal_length) # no. of images per bins for sampling frames
+               for _ in range(image_range): # sample the examples at least as many times as the image intervals
+                  for i in range(0, total_images, image_range):
+                     samples.append(random.sample(img_list[i:i+image_range],1)[0]) # sampling one frame from each interval 
+                  yield samples, label_list[0]
+            else:
+               #Normal method with temporal stride way
+               for img in img_list:
+                  samples.append(img)
+                  if len(samples)==self.temporal_length:
+                     samples_c=copy.deepcopy(samples)
+                     for _ in range(self.temporal_stride):
+                        samples.popleft() 
+                     yield samples_c,label_list[0]
+
          else:
             print ('num of frames is less than temporal length; hence discarding this file-{}'.format(f))
             continue
          
-         samples = deque()
-         samp_count=0
-         for img in img_list:
-            samples.append(img)
-            if len(samples)==self.temporal_length:
-               samples_c=copy.deepcopy(samples)
-               samp_count+=1
-               for _ in range(self.temporal_stride):
-                  samples.popleft() 
-               yield samples_c,label_list[0]
-
+         
    def load_samples(self,root_path = 'csv_dataset', data_cat=None):
 
       '''
@@ -211,6 +223,7 @@ class VideoDataGenerator:
       ], random_order=True) # apply augmenters in random order
    
    def batch_preparator(self, batch_samples, preprocess):
+      
       
       x_train = []
       y_train = []

@@ -15,7 +15,7 @@ class Data_preparation:
         Arguments:
            
            data_df - dataframe containing the paths and corresponding labels
-
+           top_labels - Labels to be used for data preparation, (default = 10)
         '''   
 
         self.df = data_df
@@ -35,9 +35,6 @@ class Data_preparation:
         default values are mentioned above
 
         '''
-
-        
-
 
         top_lab = list(self.df['label'].value_counts()[0:self.top_labels].index)
         count_lab = list(self.df['label'].value_counts()[0:self.top_labels])
@@ -152,10 +149,8 @@ class Data_preparation:
                 if ret == False:
                     break
                 i +=1
-                if format == 'png':   # images saved in png format
-                    cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.png'),frame)
-                else:
-                    cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.jpg'),frame)
+                # images saved in png format
+                cv2.imwrite(os.path.join(save_folder, 'img'+str(i)+'.png'),frame)
 
             
             cap.release()
