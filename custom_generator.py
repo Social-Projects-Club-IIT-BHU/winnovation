@@ -120,17 +120,19 @@ class VideoDataGenerator:
             print ('num of samples from vid seq-{}: {}'.format(f,num_samples))
             img_list = list(tmp_df['image_path'])
 
-            samples = deque()
+            
             if Binning:
             #Adding a unique technique of sampling frames from binning categories 
                
                image_range = int(total_images/self.temporal_length) # no. of images per bins for sampling frames
                for _ in range(image_range): # sample the examples at least as many times as the image intervals
+                  samples = []
                   for i in range(0, total_images, image_range):
-                     if ((i/image_range)<=self.temporal_length):
+                     if ((i/image_range)<self.temporal_length):
                         samples.append(random.sample(img_list[i:i+image_range],1)[0]) # sampling one frame from each interval 
                   yield samples, label_list[0]
             else:
+               samples = deque()
                #Normal method with temporal stride way
                for img in img_list:
                   samples.append(img)
