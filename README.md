@@ -4,6 +4,14 @@
 
 This is a repository based on the application of Deep learing in the field of action recognition. Here we are focussing on making an app which able to predict **American sign language** based gestures and convert it into a speech transcript or sentence for normal person to understand it.
 
+**Below are some snapshots of the sample sign videos along with the augmentations we had performed**
+
+<p align="center">
+    <img height="250" width="300" src="sample_videos/reference.gif">
+    <img  height="250" width="300" src="sample_videos/augmented_video2.gif"><br>
+    <b>Refernce sign(left) and Augmented sign(right)</b><br>
+ </p>
+
 ## **Starting Collaboration**
 ### On local machine
 
@@ -29,17 +37,10 @@ On collab the best recommended method for private repo is to use *ssh based meth
 - [ ] Model Insights
 - [ ] App Development
   
-## Objectives for this week upto (31st Dec)
-
-- **Model Building** - To compile everything and complete.
-- **App development** - Contact with preprocessing work members and develop methods for transforming things in java and kotlin 
 
 **NOTE:** If you stuck anywhere
 - Google, till you find it
 - If no, raise an issue here in github
-- else ask on whatsapp group
-
-
 
 ## **Refernces---------**
 
@@ -50,5 +51,5 @@ If you find anything useful refernces you can directly commit add that in the re
 
 ## **Instructions for Contribution:**
 
- - **For adding codes** - Create a pull request by using a different branch
+ - **For adding codes** - Create a pull request by using a different branch or by forking the repo
  - **For adding resources** - you can directly commit in repo but ensure that the resource is geniune and as per our project requirements.

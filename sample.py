@@ -32,7 +32,7 @@ seq = iaa.Sequential([
     # Scale/zoom them, translate/move them, rotate them and shear them.
     iaa.Affine(
         scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-        translate_percent={"x": (-self.width_shift_range, self.width_shift_range), "y": (-self.height_shift_range, self.height_shift_range)},
+        translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
         rotate=(-0.2*45, 0.2*45, ),
         shear=(-0.1*45, 0.1*45),
         mode = 'edge'
@@ -43,7 +43,7 @@ seq = iaa.Sequential([
 
 
 cap = cv2.VideoCapture('sample_videos/00414.mp4') 
-out = cv2.VideoWriter('/media/amshra267/sa44/winnovation/sample_videos/augmented_video2.avi', cv2.VideoWriter_fourcc(*'MJPG'), 20.0, (64,64))
+out = cv2.VideoWriter('/media/amshra267/sa44/winnovation/sample_videos/augmented_video2.mp4', 0x7634706d, 20.0, (64,64))
 
 augmented_images = []
 i = 0
