@@ -127,7 +127,8 @@ class VideoDataGenerator:
                image_range = int(total_images/self.temporal_length) # no. of images per bins for sampling frames
                for _ in range(image_range): # sample the examples at least as many times as the image intervals
                   for i in range(0, total_images, image_range):
-                     samples.append(random.sample(img_list[i:i+image_range],1)[0]) # sampling one frame from each interval 
+                     if ((i//image_range)<=self.temporal_length):
+                        samples.append(random.sample(img_list[i:i+image_range],1)[0]) # sampling one frame from each interval 
                   yield samples, label_list[0]
             else:
                #Normal method with temporal stride way
