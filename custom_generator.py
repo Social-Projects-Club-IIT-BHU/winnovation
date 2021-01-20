@@ -144,7 +144,7 @@ class VideoDataGenerator:
             continue
          
          
-   def load_samples(self,root_path = 'csv_dataset', data_cat=None):
+   def load_samples(self,root_path = 'csv_dataset', data_cat=None, Bin= False):
 
       '''
       Function for loading all the samples path in a list
@@ -161,7 +161,7 @@ class VideoDataGenerator:
 
       data_path = os.path.join(root_path, data_cat)
       csv_data_files = os.listdir(data_path)
-      file_gen = self.file_generator(data_path,csv_data_files)
+      file_gen = self.file_generator(data_path,csv_data_files, Bin)
       iterator = True
       data_list = []
       while iterator:
